@@ -1,4 +1,4 @@
-# Maitre D — Concierge Demo
+# Maitre D
 
 A lightweight concierge agent that can seat guests, manage a waitlist, and answer venue questions grounded in `knowledge/mg_cafe.md`. Audio/UI lives under `app/static`, backend under `app/` and `services/`.
 
