@@ -1,19 +1,9 @@
-# Byte-compiled / cache
-__pycache__/
-*.pyc
-*.py[cod]
-*.pyo
-
-# Environments
 .venv/
+__pycache__/
+.DS_Store
+*.pyc
+app/.env
 env/
 venv/
-.env
-app/.env
-
-# OS artifacts
-.DS_Store
-
-# Tests / logs
 .pytest_cache/
 *.log
