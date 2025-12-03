@@ -5,7 +5,6 @@ __pycache__/
 
 # Environments
 .venv/
-.env
 
 # OS artifacts
 .DS_Store
