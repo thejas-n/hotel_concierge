@@ -249,8 +249,12 @@ function startAudio() {
     audioPlayerNode = node;
     audioPlayerNode.port.onmessage = (event) => {
       if (event.data?.command === "buffer_empty") {
-        if (sessionActive && isAudio && !endAfterTurn) {
-          setAvatar("listening");
+        if (sessionActive && isAudio) {
+          if (endAfterTurn) {
+            stopAudioFlow(endReason || "turn_complete");
+          } else {
+            setAvatar("listening");
+          }
         }
       }
     };
@@ -403,7 +407,7 @@ function scheduleStopAfterTurn(reason) {
   clearTimeout(stopAfterTurnTimeout);
   stopAfterTurnTimeout = setTimeout(() => {
     stopAudioFlow(reason);
-  }, 3000);
+  }, 10000);
 }
 
 // Initial dashboard and periodic refresh

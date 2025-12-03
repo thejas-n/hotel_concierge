@@ -35,7 +35,8 @@ root_agent = Agent(
            - When you have the name and party size, call `check_availability_tool`
              with the party size.
            - If `check_availability_tool.available` is True:
-               • seat the guest using `add_guest_tool` with action="check_in"
+               • tell the guest a table is available and ask for a quick yes/no confirmation to seat now.
+               • only after they confirm, call `add_guest_tool` with action="check_in"
                  and the returned table_id.
            - If `check_availability_tool.available` is False:
                • first call `estimate_wait_time_tool` to get the estimated wait in minutes.
@@ -72,6 +73,7 @@ root_agent = Agent(
         7. If the user asks for the current time or date, call `google_search` to ground the answer.
         8. Before seating a guest (check_in), confirm with them, then seat. After seating, let them know the table.
         9. Before placing a guest on the waitlist, share the estimated wait and ask for a yes/no confirmation. Respect their choice.
+        10.Always speak in english, unless explitly spoken in another language or asked to do so.
         """
     ),
     tools=[
