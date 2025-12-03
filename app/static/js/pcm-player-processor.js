@@ -11,6 +11,7 @@ class PCMPlayerProcessor extends AudioWorkletProcessor {
     this.buffer = new Float32Array(this.bufferSize);
     this.writeIndex = 0;
     this.readIndex = 0;
+    this.notifiedEmpty = true; // start empty
 
     // Handle incoming messages from main thread
     this.port.onmessage = (event) => {
@@ -26,6 +27,7 @@ class PCMPlayerProcessor extends AudioWorkletProcessor {
 
       // Add the audio data to the buffer
       this._enqueue(int16Samples);
+      this.notifiedEmpty = false;
     };
   }
 
@@ -67,10 +69,16 @@ class PCMPlayerProcessor extends AudioWorkletProcessor {
       }
     }
 
+    // If buffer drained and we've not signaled recently, notify main thread
+    const isBufferEmpty = this.readIndex === this.writeIndex;
+    if (isBufferEmpty && !this.notifiedEmpty) {
+        this.port.postMessage({ command: "buffer_empty" });
+        this.notifiedEmpty = true;
+    }
+
     // Returning true tells the system to keep the processor alive
     return true;
   }
 }
 
 registerProcessor('pcm-player-processor', PCMPlayerProcessor);
-

@@ -31,7 +31,6 @@ let lastUserSpeechAt = 0;
 let lastAgentActivityAt = 0;
 let lastTurnCompleteAt = 0;
 let speakingFallbackTimeout;
-let speakingSilenceTimeout;
 let stopAfterTurnTimeout;
 let lastAudioAt = 0;
 let pendingTurnComplete = false;
@@ -175,17 +174,6 @@ function connectWebsocket() {
       markAgentActivity();
       lastAudioAt = Date.now();
       if (isAudio) setAvatar("speaking");
-      clearTimeout(speakingSilenceTimeout);
-      speakingSilenceTimeout = setTimeout(() => {
-        if (
-          sessionActive &&
-          isAudio &&
-          !endAfterTurn &&
-          Date.now() - lastAudioAt >= 300
-        ) {
-          setAvatar("listening");
-        }
-      }, 400);
       audioPlayerNode.port.postMessage(
         base64ToArray(message_from_server.data)
       );
@@ -199,7 +187,6 @@ function connectWebsocket() {
       markAgentActivity();
       pendingTurnComplete = false;
       clearTimeout(listeningCheckTimeout);
-      clearTimeout(speakingSilenceTimeout);
       clearTimeout(speakingFallbackTimeout);
       if (isAudio && sessionActive && !endAfterTurn) {
         setAvatar("listening");
@@ -260,6 +247,13 @@ function startAudio() {
   startInactivityWatch();
   startAudioPlayerWorklet().then(([node, ctx]) => {
     audioPlayerNode = node;
+    audioPlayerNode.port.onmessage = (event) => {
+      if (event.data?.command === "buffer_empty") {
+        if (sessionActive && isAudio && !endAfterTurn) {
+          setAvatar("listening");
+        }
+      }
+    };
   });
   startAudioRecorderWorklet(audioRecorderHandler).then(
     ([node, ctx, stream]) => {

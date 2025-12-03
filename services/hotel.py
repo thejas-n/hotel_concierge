@@ -155,6 +155,46 @@ class HotelManager:
         )
         return position
 
+    def estimate_wait_time(self, party_size: int) -> Optional[int]:
+        """
+        Estimate how many minutes until a suitable table frees up for a party.
+        Simulates the current waitlist plus this new party.
+        """
+        current_time = datetime.datetime.now()
+
+        simulated_tables = []
+        for t in self.tables:
+            sim_table_dict = t.to_dict()
+            sim_table_dict["estimated_free_time"] = current_time
+            if t.status == "occupied" and t.assigned_time:
+                sim_table_dict["estimated_free_time"] = t.assigned_time + datetime.timedelta(
+                    minutes=self.default_dining_duration_minutes
+                )
+            simulated_tables.append(sim_table_dict)
+
+        simulated_tables.sort(key=lambda x: x["estimated_free_time"])
+
+        queue = list(self.waitlist) + [WaitlistEntry(name="__new__", party_size=party_size)]
+
+        for entry in queue:
+            found_table = False
+            for sim_table in simulated_tables:
+                if sim_table["seats"] >= entry.party_size:
+                    wait_until_free = max(
+                        0,
+                        int((sim_table["estimated_free_time"] - current_time).total_seconds() / 60),
+                    )
+                    sim_table["estimated_free_time"] += datetime.timedelta(
+                        minutes=self.default_dining_duration_minutes
+                    )
+                    found_table = True
+                    if entry.name == "__new__":
+                        return wait_until_free
+                    break
+            if not found_table and entry.name == "__new__":
+                return None
+        return None
+
     def checkout_and_fill_waitlist(self, table_id: str) -> Dict[str, Any]:
         table = self._find_table(table_id)
         if not table:

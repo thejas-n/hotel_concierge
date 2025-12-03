@@ -12,6 +12,7 @@ from services.check_availability_tool import check_availability_tool
 from services.add_guest_tool import add_guest_tool
 from services.get_status_tool import get_status_tool
 from services.knowledge_tool import get_mg_cafe_knowledge
+from services.estimate_wait_time_tool import estimate_wait_time_tool
 
 root_agent = Agent(
     name="Concierge",
@@ -37,13 +38,15 @@ root_agent = Agent(
                • seat the guest using `add_guest_tool` with action="check_in"
                  and the returned table_id.
            - If `check_availability_tool.available` is False:
-               • call `add_guest_tool` with action="waitlist".
+               • first call `estimate_wait_time_tool` to get the estimated wait in minutes.
+               • tell the guest the estimated wait time and ask for confirmation.
+               • only if they agree, call `add_guest_tool` with action="waitlist".
            - When guests ask about the restaurant status, use `get_status_tool`.
 
         3. How to use tool results.
            - After using `add_guest_tool`:
                • If status = "seated", tell the guest their table number.
-               • If status = "waitlisted", tell them their position.
+               • If status = "waitlisted", tell them their position and the estimated wait time.
            - After `check_availability_tool`, never tell the guest “there are no tables”.
              Say: “We will add you to the waitlist” and then call `add_guest_tool`.
 
@@ -68,6 +71,7 @@ root_agent = Agent(
            first call `get_mg_cafe_knowledge` and answer strictly from the returned text. Do not invent facts.
         7. If the user asks for the current time or date, call `google_search` to ground the answer.
         8. Before seating a guest (check_in), confirm with them, then seat. After seating, let them know the table.
+        9. Before placing a guest on the waitlist, share the estimated wait and ask for a yes/no confirmation. Respect their choice.
         """
     ),
     tools=[
@@ -76,5 +80,6 @@ root_agent = Agent(
         get_status_tool,
         google_search,
         get_mg_cafe_knowledge,
+        estimate_wait_time_tool,
     ],
 )
